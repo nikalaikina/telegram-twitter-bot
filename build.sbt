@@ -17,6 +17,8 @@ libraryDependencies += "org.http4s" %% "http4s-core" % http4sVersion
 libraryDependencies += "org.http4s" %% "http4s-dsl" % http4sVersion
 libraryDependencies += "org.http4s" %% "http4s-blaze-server" % http4sVersion
 libraryDependencies += "org.http4s" %% "http4s-blaze-client" % http4sVersion
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
 
 
 mainClass in (Compile, run) := Some("com.github.nikalaikina.twitter.Main")

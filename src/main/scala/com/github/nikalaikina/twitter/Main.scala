@@ -1,8 +1,12 @@
 package com.github.nikalaikina.twitter
 
+import com.danielasfregola.twitter4s.entities.streaming.UserStreamingMessage
 import com.github.nikdon.telepooz.engine._
 
 object Main extends Telepooz with App {
+  import com.danielasfregola.twitter4s.util.Configurations._
+
+  val auth = new TwitterAuth(consumerTokenKey, consumerTokenSecret)
 
   implicit val are = new ApiRequestExecutor {}
   val poller       = new Polling
@@ -10,8 +14,18 @@ object Main extends Telepooz with App {
     val reactions = CommandBasedReactions()
       .on("/start")(implicit message ⇒
         args ⇒ {
-          println(s"You are started! $args")
-          reply("You are started!")
+          for {
+            (url, clientF) <- auth.requestUrl
+            _ <- reply(s"Follow the link to log in Twitter: $url")
+            client <- clientF
+          } yield {
+            client.subscribe(Seq(
+              { m: UserStreamingMessage =>
+                reply(m.toString)
+              }
+            ))
+
+          }
         })
       .on("/test")(implicit message ⇒
         args ⇒ {
