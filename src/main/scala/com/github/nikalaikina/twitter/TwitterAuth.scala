@@ -3,6 +3,8 @@ package com.github.nikalaikina.twitter
 import java.util.concurrent.ConcurrentHashMap
 
 import cats.effect.IO
+import com.danielasfregola.twitter4s.TwitterAuthenticationClient
+import com.danielasfregola.twitter4s.entities.authentication.RequestToken
 import com.typesafe.scalalogging.LazyLogging
 import org.http4s.client.blaze.Http1Client
 import org.http4s.client.oauth1
@@ -16,14 +18,20 @@ class TwitterAuth(val consumerKey: String, val consumerSecret: String) extends L
   import scala.concurrent.ExecutionContext.Implicits.global
 
   object TokenParam extends QueryParamDecoderMatcher[String]("oauth_token")
+  object VerifierParam extends QueryParamDecoderMatcher[String]("oauth_verifier")
 
   private val map = new ConcurrentHashMap[String, (String, Promise[TwitterClient])]()
 
+  private val authClient = TwitterAuthenticationClient()
+
   private val authService: HttpService[IO] = HttpService[IO] {
-    case r @ GET -> Root :? TokenParam(token) =>
+    case r @ GET -> Root :? TokenParam(token) +& VerifierParam(verifier) =>
       logger.info(s"Auth result: $r")
       val (secret, promise) = map.remove(token)
-      promise.success(TwitterClient(token, secret))
+      authClient.accessToken(RequestToken(token, secret), oauth_verifier = verifier).foreach { access =>
+        logger.info(s"Got access: $access")
+        promise.success(TwitterClient(access.accessToken))
+      }
       Ok("Hi!")
   }
 

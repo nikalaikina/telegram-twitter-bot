@@ -8,16 +8,14 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.Failure
 
 case class TwitterClient(
-  token: String,
-  secret: String,
+  accessToken: AccessToken,
   listeners: Seq[UserStreamingMessage => Unit] = Seq.empty
 ) extends LazyLogging {
   import com.danielasfregola.twitter4s.util.Configurations._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val consumerToken = ConsumerToken(key = token, secret = secret)
-  val accessToken = AccessToken(key = accessTokenKey, secret = accessTokenSecret)
+  val consumerToken = ConsumerToken(key = consumerTokenKey, secret =  consumerTokenSecret)
 
   val restClient = TwitterRestClient(consumerToken, accessToken)
   restClient.verifyCredentials().onComplete {
