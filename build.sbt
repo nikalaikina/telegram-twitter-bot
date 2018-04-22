@@ -10,7 +10,8 @@ resolvers += "jitpack" at "https://jitpack.io"
 
 scalacOptions ++= Seq("-Ypartial-unification")
 
-libraryDependencies += "com.github.nikdon" % "telepooz" % "0.5.6"
+libraryDependencies += "info.mukel" %% "telegrambot4s" % "3.0.14"
+
 libraryDependencies += "com.danielasfregola" %% "twitter4s" % "5.5"
 libraryDependencies += "org.twitter4j" % "twitter4j-core" % "4.0.6"
 libraryDependencies += "org.http4s" %% "http4s-core" % http4sVersion

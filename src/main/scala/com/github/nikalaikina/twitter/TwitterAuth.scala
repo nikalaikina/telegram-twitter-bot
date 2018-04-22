@@ -15,7 +15,7 @@ import scala.concurrent.{Future, Promise}
 class TwitterAuth(val consumerKey: String, val consumerSecret: String) extends LazyLogging {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  object TokenParam extends QueryParamDecoderMatcher[String]("country")
+  object TokenParam extends QueryParamDecoderMatcher[String]("oauth_token")
 
   private val map = new ConcurrentHashMap[String, (String, Promise[TwitterClient])]()
 
@@ -57,7 +57,7 @@ class TwitterAuth(val consumerKey: String, val consumerSecret: String) extends L
     val promise = Promise[TwitterClient]
     val paramsMap = parseParams(params)
     val token = paramsMap("oauth_token")
-    val urlForAuth = "https://api.twitter.com/oauth/authorize?" + token
+    val urlForAuth = "https://api.twitter.com/oauth/authorize?oauth_token=" + token
     val secret = paramsMap("oauth_token_secret")
     map.put(token, (secret, promise))
     (urlForAuth, promise.future)
