@@ -1,25 +1,35 @@
 package com.github.nikalaikina.twitter
 
-import com.github.nikdon.telepooz.engine._
+import com.danielasfregola.twitter4s.entities.streaming.UserStreamingMessage
+import info.mukel.telegrambot4s.api.declarative.Commands
+import info.mukel.telegrambot4s.api.{Polling, TelegramBot}
 
-object Main extends Telepooz with App {
-
-  implicit val are = new ApiRequestExecutor {}
-  val poller       = new Polling
-  val reactor = new Reactor {
-    val reactions = CommandBasedReactions()
-      .on("/start")(implicit message ⇒
-        args ⇒ {
-          println(s"You are started! $args")
-          reply("You are started!")
-        })
-      .on("/test")(implicit message ⇒
-        args ⇒ {
-          println(s"You are tested! $args")
-          reply("You are tested!")
-        })
-  }
-
-  instance.run((are, poller, reactor))
-
+object Main extends App {
+  SafeBot.run()
 }
+
+object SafeBot extends TelegramBot with Polling with Commands {
+  import com.danielasfregola.twitter4s.util.Configurations._
+
+  lazy val token: String = config.getString("telegram.token")
+
+  val auth = new TwitterAuth(consumerTokenKey, consumerTokenSecret)
+
+  onCommand('start) { implicit msg =>
+    for {
+      (url, clientF) <- auth.requestUrl
+      _ <- reply(s"Follow the link to log in Twitter: $url")
+      client <- clientF
+    } yield {
+      logger.info(s"Subscribed!")
+      client.subscribe(Seq(
+        { m: UserStreamingMessage =>
+          logger.info(s"Message: $m")
+          reply(m.toString)
+        }
+      ))
+
+    }
+  }
+}
+
