@@ -23,7 +23,7 @@ class TwitterAuth(val consumerKey: String, val consumerSecret: String) extends L
     case r @ GET -> Root :? TokenParam(token) =>
       logger.info(s"Auth result: $r")
       val (secret, promise) = map.remove(token)
-      promise.success(new TwitterClient(token, secret))
+      promise.success(TwitterClient(token, secret))
       Ok("Hi!")
   }
 

@@ -16,8 +16,8 @@ case class TwitterClient(
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val consumerToken = ConsumerToken(key = consumerTokenKey, secret = consumerTokenSecret)
-  val accessToken = AccessToken(key = token, secret = secret)
+  val consumerToken = ConsumerToken(key = token, secret = secret)
+  val accessToken = AccessToken(key = accessTokenKey, secret = accessTokenSecret)
 
   val restClient = TwitterRestClient(consumerToken, accessToken)
   restClient.verifyCredentials().onComplete {
