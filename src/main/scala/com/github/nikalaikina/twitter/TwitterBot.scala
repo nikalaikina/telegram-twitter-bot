@@ -24,7 +24,7 @@ object TwitterBot extends TelegramBot with Polling with Commands {
     } yield {
       logger.info(s"Subscribed!")
       reply("Successfully subscribed to your twitter updates!")
-      client.copy(callback = {
+      client.copy(callbacks = Seq({
         case m: DirectMessage =>
           reply(s"New direct message from ${m.sender_screen_name}: ${m.text}")
         case m: DisconnectMessage =>
@@ -34,7 +34,7 @@ object TwitterBot extends TelegramBot with Polling with Commands {
         case TweetEvent(time, Favorite,         target: User, source: User, tweet) =>
         case TweetEvent(time, FavoritedRetweet, target: User, source: User, tweet) =>
         case TweetEvent(time, Unfavorite,       target: User, source: User, tweet) =>
-          reply(s"${source.url} unfavourited your tweet ${tweet.id} (${source.followers_count} followers, ${if (source.following) "following" else "not following"})")
+          reply(s"${source.url} unfavourited tweet ${tweet.id} (${source.followers_count} followers, ${if (source.following) "following" else "not following"})")
         case TweetEvent(time, QuotedTweet,      target: User, source: User, tweet) =>
 
         case m: TwitterListEvent =>
@@ -73,7 +73,7 @@ object TwitterBot extends TelegramBot with Polling with Commands {
 
         case m: UserStreamingMessage =>
           logger.debug(s"Message: $m")
-      })
+      }))
     }
   }
 

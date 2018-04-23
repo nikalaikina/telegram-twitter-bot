@@ -9,7 +9,7 @@ import scala.util.Failure
 
 case class TwitterClient(
   accessToken: AccessToken,
-  callback: PartialFunction[UserStreamingMessage, Unit] = PartialFunction.empty
+  callbacks: Seq[PartialFunction[UserStreamingMessage, Unit]] = Seq.empty
 ) extends LazyLogging {
   import com.danielasfregola.twitter4s.util.Configurations._
 
@@ -24,6 +24,10 @@ case class TwitterClient(
   }
 
   val streamingClient = TwitterStreamingClient(consumerToken, accessToken)
-  streamingClient.userEvents()(callback)
+  streamingClient.userEvents() {
+    case x: UserStreamingMessage =>
+      logger.debug(s"Event ${x.getClass.getSimpleName}")
+      callbacks.foreach(_(x))
+  }
 
 }
