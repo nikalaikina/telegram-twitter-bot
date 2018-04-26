@@ -13,20 +13,25 @@ trait EventCallbacks extends Messages {
 
 
   def defaultCallback(implicit message: Message): PartialFunction[UserStreamingMessage, Unit] = {
+    case m: Tweet =>
+
+    case m: FriendsLists =>
+
     case m: DirectMessage =>
       reply(s"New direct message from ${m.sender_screen_name}: ${m.text}")
     case m: DisconnectMessage =>
       reply("Disconnected, click /start to log in again")
 
     case TweetEvent(time, Favorite,         target: User, source: User, tweet) =>
+      reply(tweetAction(source, "favorited", tweet))
     case TweetEvent(time, FavoritedRetweet, target: User, source: User, tweet) =>
+
     case TweetEvent(time, Unfavorite,       target: User, source: User, tweet) =>
-      reply(s"${source.url} unfavourited tweet ${tweet.id} (${source.followers_count} followers, ${if (source.following) "following" else "not following"})")
+      reply(tweetAction(source, "unfavorited", tweet))
     case TweetEvent(time, QuotedTweet,      target: User, source: User, tweet) =>
+      reply(tweetAction(source, "quoted", tweet))
 
     case m: TwitterListEvent =>
-
-    case m: FriendsLists =>
 
     case m: FriendsListsStringified =>
 
@@ -37,20 +42,18 @@ trait EventCallbacks extends Messages {
     case SimpleEvent(time, AccessRevoked, target: User, source: User, target_object: Option[String]) =>
       reply(userAction(source, "revoked access"))
     case SimpleEvent(time, Block,         target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "blocked"))
+      reply(userAction(source, "blocked you"))
     case SimpleEvent(time, Unblock,       target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "unblocked"))
+      reply(userAction(source, "unblocked you"))
     case SimpleEvent(time, Follow,        target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "followed"))
+      reply(userAction(source, "followed you"))
     case SimpleEvent(time, Unfollow,      target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "unfollowed"))
+      reply(userAction(source, "unfollowed you"))
     case SimpleEvent(time, UserUpdate,    target: User, source: User, target_object: Option[String]) =>
 
     case m: StatusDeletionNotice =>
 
     case m: StatusWithheldNotice =>
-
-    case m: Tweet =>
 
     case m: UserWithheldNotice =>
 
@@ -68,6 +71,11 @@ trait EventCallbacks extends Messages {
 
 
   private def userAction(source: User, action: String) = {
-    s"${source.url} $action you (${source.followers_count} followers, ${if (source.following) "following" else "not following"})"
+    s"${source.screen_name} $action " +
+      s"(${source.followers_count} followers, ${if (source.following) "following" else "not following"})"
+  }
+
+  private def tweetAction(source: User, action: String, tweet: Tweet) = {
+    s"""$action tweet "${tweet.text}""""
   }
 }
