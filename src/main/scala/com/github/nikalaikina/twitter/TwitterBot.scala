@@ -16,10 +16,12 @@ object TwitterBot extends TelegramBot with Polling with Commands with EventCallb
       (url, clientF) <- auth.requestUrl
       _ <- reply(s"Follow the link to log in Twitter: $url")
       client <- clientF
+      me <- client.restClient.verifyCredentials()
+      myId = me.data.id
     } yield {
       logger.info(s"Subscribed!")
       reply("Successfully subscribed to your twitter updates!")
-      client.copy(callbacks = Seq(debugCallback, defaultCallback))
+      client.copy(callbacks = Seq(debugCallback, defaultCallback(myId)))
     }
   }
 

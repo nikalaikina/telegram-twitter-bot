@@ -7,29 +7,54 @@ import com.danielasfregola.twitter4s.entities.streaming.common._
 import com.danielasfregola.twitter4s.entities.streaming.user._
 import com.danielasfregola.twitter4s.entities.{DirectMessage, Tweet, User}
 import info.mukel.telegrambot4s.api.declarative.Messages
+import info.mukel.telegrambot4s.methods.ParseMode
 import info.mukel.telegrambot4s.models.Message
 
 trait EventCallbacks extends Messages {
 
 
-  def defaultCallback(implicit message: Message): PartialFunction[UserStreamingMessage, Unit] = {
+  def defaultCallback(myUserId: Long)(implicit message: Message): PartialFunction[UserStreamingMessage, Unit] = {
+    case m: Tweet => if (m.in_reply_to_user_id.contains(myUserId)) {
+      for {
+        source <- m.user
+      } {
+        reply(tweetAction(source, s"""replied to you""", m), Some(ParseMode.Markdown))
+      }
+    }
+      for {
+        source <- m.user
+        tweet <- m.retweeted_status
+        if tweet.user.exists(_.id == myUserId)
+      } {
+        reply(tweetAction(source, "retweeted", tweet), Some(ParseMode.Markdown))
+      }
     case m: Tweet =>
+      for {
+        source <- m.user
+        tweet <- m.retweeted_status
+      } {
+        if (tweet.user.exists(_.id == myUserId)) {
+          reply(tweetAction(source, "retweeted", tweet), Some(ParseMode.Markdown))
+        } else if (tweet.in_reply_to_user_id.contains(myUserId)) {
+          reply(tweetAction(source, s"""replied _${tweet.text}_ to tweet:""", tweet), Some(ParseMode.Markdown))
+        }
+      }
 
     case m: FriendsLists =>
 
     case m: DirectMessage =>
-      reply(s"New direct message from ${m.sender_screen_name}: ${m.text}")
+      reply(s"New direct message from *${m.sender_screen_name}*: `${m.text}`", Some(ParseMode.Markdown))
     case m: DisconnectMessage =>
-      reply("Disconnected, click /start to log in again")
+      reply("Disconnected, click /start to log in again", Some(ParseMode.Markdown))
 
     case TweetEvent(time, Favorite,         target: User, source: User, tweet) =>
-      reply(tweetAction(source, "favorited", tweet))
+      reply(tweetAction(source, "favorited", tweet), Some(ParseMode.Markdown))
     case TweetEvent(time, FavoritedRetweet, target: User, source: User, tweet) =>
-
+      reply(tweetAction(source, "favorited retweet", tweet), Some(ParseMode.Markdown))
     case TweetEvent(time, Unfavorite,       target: User, source: User, tweet) =>
-      reply(tweetAction(source, "unfavorited", tweet))
+      reply(tweetAction(source, "unfavorited", tweet), Some(ParseMode.Markdown))
     case TweetEvent(time, QuotedTweet,      target: User, source: User, tweet) =>
-      reply(tweetAction(source, "quoted", tweet))
+      reply(tweetAction(source, "quoted", tweet), Some(ParseMode.Markdown))
 
     case m: TwitterListEvent =>
 
@@ -40,15 +65,15 @@ trait EventCallbacks extends Messages {
     case m: LocationDeletionNotice =>
 
     case SimpleEvent(time, AccessRevoked, target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "revoked access"))
+      reply(userAction(source, "revoked access"), Some(ParseMode.Markdown))
     case SimpleEvent(time, Block,         target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "blocked you"))
+      reply(userAction(source, "blocked you"), Some(ParseMode.Markdown))
     case SimpleEvent(time, Unblock,       target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "unblocked you"))
+      reply(userAction(source, "unblocked you"), Some(ParseMode.Markdown))
     case SimpleEvent(time, Follow,        target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "followed you"))
+      reply(userAction(source, "followed you"), Some(ParseMode.Markdown))
     case SimpleEvent(time, Unfollow,      target: User, source: User, target_object: Option[String]) =>
-      reply(userAction(source, "unfollowed you"))
+      reply(userAction(source, "unfollowed you"), Some(ParseMode.Markdown))
     case SimpleEvent(time, UserUpdate,    target: User, source: User, target_object: Option[String]) =>
 
     case m: StatusDeletionNotice =>
@@ -76,6 +101,6 @@ trait EventCallbacks extends Messages {
   }
 
   private def tweetAction(source: User, action: String, tweet: Tweet) = {
-    s"""$action tweet "${tweet.text}""""
+    s"""*${source.screen_name}* $action tweet `${tweet.text}`"""
   }
 }
