@@ -44,7 +44,11 @@ class ChatStateActor(chatId: ChatId, auth: TwitterAuth) extends PersistentActor 
       msg(message)
   }
 
-  def receiveRecover: Receive = mainReceive
+  def receiveRecover: Receive = {
+    case TwitterLogin(client, Some(myTwitterId)) =>
+      context become authedReceive(ChatState(client, myTwitterId))
+    case _: ChatEvent =>
+  }
 
   private def text(s: String): Unit = msg(TelegramMsg(s))
   private def msg(m: TelegramMsg): Unit = {
