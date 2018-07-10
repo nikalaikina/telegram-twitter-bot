@@ -12,13 +12,16 @@ scalacOptions ++= Seq("-Ypartial-unification")
 
 libraryDependencies += "info.mukel" %% "telegrambot4s" % "3.0.14"
 
-libraryDependencies += "com.github.nikalaikina" % "twitter4s" % "direct_message_fix-SNAPSHOT"
-libraryDependencies += "org.http4s" %% "http4s-core" % http4sVersion
-libraryDependencies += "org.http4s" %% "http4s-dsl" % http4sVersion
-libraryDependencies += "org.http4s" %% "http4s-blaze-server" % http4sVersion
-libraryDependencies += "org.http4s" %% "http4s-blaze-client" % http4sVersion
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
-libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
+libraryDependencies ++= Seq(
+  "com.github.nikalaikina" % "twitter4s" % "direct_message_fix-SNAPSHOT",
+  "org.http4s" %% "http4s-core" % http4sVersion,
+  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+  "com.typesafe.akka" %% "akka-persistence" % "2.5.9",
+)
 
 
 mainClass in (Compile, run) := Some("com.github.nikalaikina.twitter.Main")

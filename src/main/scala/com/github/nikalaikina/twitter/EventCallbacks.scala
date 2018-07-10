@@ -14,20 +14,13 @@ trait EventCallbacks extends Messages {
 
 
   def defaultCallback(myUserId: Long)(implicit message: Message): PartialFunction[UserStreamingMessage, Unit] = {
-    case m: Tweet => if (m.in_reply_to_user_id.contains(myUserId)) {
+    case m: Tweet if m.in_reply_to_user_id.contains(myUserId) =>
       for {
         source <- m.user
       } {
         reply(tweetAction(source, s"""replied to you""", m), Some(ParseMode.Markdown))
       }
-    }
-      for {
-        source <- m.user
-        tweet <- m.retweeted_status
-        if tweet.user.exists(_.id == myUserId)
-      } {
-        reply(tweetAction(source, "retweeted", tweet), Some(ParseMode.Markdown))
-      }
+
     case m: Tweet =>
       for {
         source <- m.user

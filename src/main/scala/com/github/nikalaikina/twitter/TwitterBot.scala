@@ -1,8 +1,11 @@
 package com.github.nikalaikina.twitter
 
+import akka.actor.{ActorRef, Props}
 import info.mukel.telegrambot4s.api.declarative.Commands
 import info.mukel.telegrambot4s.api.{Polling, TelegramBot}
-import info.mukel.telegrambot4s.models.Message
+import info.mukel.telegrambot4s.models.{ChatId, Message}
+
+import scala.collection.mutable
 
 object TwitterBot extends TelegramBot with Polling with Commands with EventCallbacks {
   import com.danielasfregola.twitter4s.util.Configurations._
@@ -11,18 +14,20 @@ object TwitterBot extends TelegramBot with Polling with Commands with EventCallb
 
   val auth = new TwitterAuth(consumerTokenKey, consumerTokenSecret)
 
+  val actorMap: mutable.Map[ChatId, ActorRef] = mutable.Map()
+
+  def newChatActor(chatId: ChatId) = system.actorOf(Props(classOf[ChatStateActor], chatId, auth), s"chat-$chatId")
+
+  def chatActor(implicit msg: Message) = {
+    actorMap.getOrElse(msg.chat.id, newChatActor(msg.chat.id))
+  }
+
   onCommand('start) { implicit msg: Message =>
-    for {
-      (url, clientF) <- auth.requestUrl
-      _ <- reply(s"Follow the link to log in Twitter: $url")
-      client <- clientF
-      me <- client.restClient.verifyCredentials()
-      myId = me.data.id
-    } yield {
-      logger.info(s"Subscribed!")
-      reply("Successfully subscribed to your twitter updates!")
-      client.copy(callbacks = Seq(debugCallback, defaultCallback(myId)))
-    }
+    chatActor ! TwitterLoginRequest
+  }
+
+  onCommand('follow_back_list) { implicit msg: Message =>
+    chatActor ! FollowBackList
   }
 
 }
