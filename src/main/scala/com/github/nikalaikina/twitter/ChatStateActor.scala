@@ -1,5 +1,6 @@
 package com.github.nikalaikina.twitter
 
+import akka.event.LoggingReceive
 import akka.pattern.pipe
 import akka.persistence._
 import info.mukel.telegrambot4s.models.ChatId
@@ -9,7 +10,7 @@ import scala.concurrent.Future
 case class ChatState(client: TwitterClient, myTwitterId: Long)
 
 class ChatStateActor(chatId: ChatId, auth: TwitterAuth) extends PersistentActor with UserUtility {
-  override def persistenceId = s"chat-$chatId"
+  override def persistenceId = s"chat-${chatId.toEither.merge.toString}"
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -19,12 +20,12 @@ class ChatStateActor(chatId: ChatId, auth: TwitterAuth) extends PersistentActor 
       persist(e)(mainReceive)
   }
 
-  def mainReceive: Receive = {
+  def mainReceive: Receive = LoggingReceive {
     case TwitterLoginRequest =>
       auth.requestUrl.map(t => (TwitterLoginUrl.apply _).tupled(t)) pipeTo self
 
     case TwitterLoginUrl(url, client) =>
-      text(url)
+      msg(TelegramMsg(text = url, parseMode = None))
       client.map(TwitterLogin(_, None)) pipeTo self
 
     case e @ TwitterLogin(client, None) =>
@@ -43,7 +44,7 @@ class ChatStateActor(chatId: ChatId, auth: TwitterAuth) extends PersistentActor 
       msg(message)
   }
 
-  def receiveRecover: Receive = receive
+  def receiveRecover: Receive = mainReceive
 
   private def text(s: String): Unit = msg(TelegramMsg(s))
   private def msg(m: TelegramMsg): Unit = {

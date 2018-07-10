@@ -16,7 +16,7 @@ object TwitterBot extends TelegramBot with Polling with Commands with EventCallb
 
   val actorMap: mutable.Map[ChatId, ActorRef] = mutable.Map()
 
-  def newChatActor(chatId: ChatId) = system.actorOf(Props(classOf[ChatStateActor], chatId, auth), s"chat-$chatId")
+  def newChatActor(chatId: ChatId) = system.actorOf(Props(classOf[ChatStateActor], chatId, auth), s"chat-${chatId.toEither.merge.toString}")
 
   def chatActor(implicit msg: Message) = {
     actorMap.getOrElse(msg.chat.id, newChatActor(msg.chat.id))

@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
   "com.typesafe.akka" %% "akka-persistence" % "2.5.9",
+  "org.iq80.leveldb" % "leveldb" % "0.7",
+  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
 )
 
 
