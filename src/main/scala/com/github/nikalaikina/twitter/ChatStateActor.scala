@@ -40,6 +40,9 @@ class ChatStateActor(chatId: ChatId, auth: TwitterAuth) extends PersistentActor 
     case FollowBackList =>
       followBack(state).map(UtilResponse) pipeTo self
 
+    case BotList =>
+      findBots(state).map(UtilResponse) pipeTo self
+
     case UtilResponse(message) =>
       msg(message)
   }
@@ -68,5 +71,6 @@ case class TwitterLogin(client: TwitterClient, myTwitterId: Option[Long]) extend
 sealed trait UtilRequest extends ChatEvent
 
 object FollowBackList extends UtilRequest
+object BotList extends UtilRequest
 
 case class UtilResponse(msg: TelegramMsg) extends ChatEvent
